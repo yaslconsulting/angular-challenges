@@ -1,34 +1,61 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { FakeHttpService } from '../../data-access/fake-http.service';
+import { NgOptimizedImage } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnInit,
+} from '@angular/core';
+import {
+  FakeHttpService,
+  randTeacher,
+} from '../../data-access/fake-http.service';
 import { TeacherStore } from '../../data-access/teacher.store';
-import { CardType } from '../../model/card.model';
+import { CardDisplay } from '../../model/card.model';
+import { Teacher } from '../../model/teacher.model';
 import { CardComponent } from '../../ui/card/card.component';
 
 @Component({
   selector: 'app-teacher-card',
   template: `
     <app-card
-      [list]="teachers()"
-      [type]="cardType"
-      customClass="bg-light-red"></app-card>
+      [list]="cardDisplays()"
+      (addNewItemEvent)="addOne()"
+      (deleteEvent)="delete($event)"
+      customClass="bg-light-red">
+      <div card-header>
+        <img ngSrc="assets/img/teacher.png" width="200" height="200" />
+      </div>
+    </app-card>
   `,
-  styles: [
-    `
-      ::ng-deep .bg-light-red {
-        background-color: rgba(250, 0, 0, 0.1);
-      }
-    `,
-  ],
-  imports: [CardComponent],
+  imports: [CardComponent, NgOptimizedImage],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TeacherCardComponent implements OnInit {
   private http = inject(FakeHttpService);
   private store = inject(TeacherStore);
 
   teachers = this.store.teachers;
-  cardType = CardType.TEACHER;
+  cardDisplays = computed(() => this.adaptTeachers(this.teachers()));
 
   ngOnInit(): void {
     this.http.fetchTeachers$.subscribe((t) => this.store.addAll(t));
+  }
+
+  addOne(): void {
+    this.store.addOne(randTeacher());
+  }
+
+  delete(id: number) {
+    this.store.deleteOne(id);
+  }
+
+  adaptTeachers(teachers: Teacher[]): CardDisplay[] {
+    return teachers.map((teacher) => {
+      return {
+        id: teacher.id,
+        name: teacher.firstName,
+      };
+    });
   }
 }
