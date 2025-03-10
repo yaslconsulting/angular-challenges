@@ -2,7 +2,6 @@ import { NgOptimizedImage } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  effect,
   inject,
   OnInit,
 } from '@angular/core';
@@ -11,22 +10,31 @@ import {
   FakeHttpService,
   randomCity,
 } from '../../data-access/fake-http.service';
+import { CardRowDirective } from '../../ui/card/card-row.directive';
 import { CardComponent } from '../../ui/card/card.component';
+import { ListItemComponent } from '../../ui/list-item/list-item.component';
 
 @Component({
   selector: 'app-city-card',
   template: `
     <app-card
-      [list]="cities()"
+      [items]="cities()"
       (addNewItemEvent)="addOne()"
-      (deleteEvent)="delete($event)"
       customClass="bg-light-blue">
-      <div card-header>
-        <img ngSrc="assets/img/city.png" width="200" height="200" />
-      </div>
+      <img card-header ngSrc="assets/img/city.png" width="200" height="200" />
+      <ng-template [cardRow]="cities()" let-city>
+        <app-list-item (delete)="delete(city.id)">
+          {{ city.name }}
+        </app-list-item>
+      </ng-template>
     </app-card>
   `,
-  imports: [CardComponent, NgOptimizedImage],
+  imports: [
+    CardComponent,
+    NgOptimizedImage,
+    ListItemComponent,
+    CardRowDirective,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CityCardComponent implements OnInit {
@@ -34,12 +42,6 @@ export class CityCardComponent implements OnInit {
   private store = inject(CityStore);
 
   cities = this.store.cities;
-
-  constructor() {
-    effect(() => {
-      console.log(this.cities());
-    });
-  }
 
   ngOnInit(): void {
     this.http.fetchCities$.subscribe((c) => this.store.addAll(c));

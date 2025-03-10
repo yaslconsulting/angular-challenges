@@ -2,7 +2,6 @@ import { NgOptimizedImage } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   inject,
   OnInit,
 } from '@angular/core';
@@ -11,24 +10,35 @@ import {
   randStudent,
 } from '../../data-access/fake-http.service';
 import { StudentStore } from '../../data-access/student.store';
-import { CardDisplay } from '../../model/card.model';
-import { Student } from '../../model/student.model';
+import { CardRowDirective } from '../../ui/card/card-row.directive';
 import { CardComponent } from '../../ui/card/card.component';
+import { ListItemComponent } from '../../ui/list-item/list-item.component';
 
 @Component({
   selector: 'app-student-card',
   template: `
     <app-card
-      [list]="cardDisplays()"
+      [items]="students()"
       (addNewItemEvent)="addOne()"
-      (deleteEvent)="delete($event)"
       customClass="bg-light-green">
-      <div card-header>
-        <img ngSrc="assets/img/student.webp" width="200" height="200" />
-      </div>
+      <img
+        card-header
+        ngSrc="assets/img/student.webp"
+        width="200"
+        height="200" />
+      <ng-template [cardRow]="students()" let-student>
+        <app-list-item (delete)="delete(student.id)">
+          {{ student.firstName }}
+        </app-list-item>
+      </ng-template>
     </app-card>
   `,
-  imports: [CardComponent, NgOptimizedImage],
+  imports: [
+    CardComponent,
+    NgOptimizedImage,
+    ListItemComponent,
+    CardRowDirective,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StudentCardComponent implements OnInit {
@@ -36,7 +46,6 @@ export class StudentCardComponent implements OnInit {
   private store = inject(StudentStore);
 
   students = this.store.students;
-  cardDisplays = computed(() => this.adaptStudents(this.students()));
 
   ngOnInit(): void {
     this.http.fetchStudents$.subscribe((s) => this.store.addAll(s));
@@ -48,14 +57,5 @@ export class StudentCardComponent implements OnInit {
 
   delete(id: number) {
     this.store.deleteOne(id);
-  }
-
-  adaptStudents(students: Student[]): CardDisplay[] {
-    return students.map((student) => {
-      return {
-        id: student.id,
-        name: student.firstName,
-      };
-    });
   }
 }

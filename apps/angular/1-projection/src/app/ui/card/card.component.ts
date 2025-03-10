@@ -1,11 +1,13 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  contentChild,
   input,
   output,
+  TemplateRef,
 } from '@angular/core';
-import { CardDisplay } from '../../model/card.model';
-import { ListItemComponent } from '../list-item/list-item.component';
+import { CardRowDirective } from './card-row.directive';
 
 @Component({
   selector: 'app-card',
@@ -15,11 +17,10 @@ import { ListItemComponent } from '../list-item/list-item.component';
       [class]="customClass()">
       <ng-content select="[card-header]"></ng-content>
       <section>
-        @for (item of list(); track item) {
-          <app-list-item
-            [name]="item.name"
-            [id]="item.id"
-            (deleteEvent)="delete($event)"></app-list-item>
+        @for (item of items(); track item.id) {
+          <ng-template
+            [ngTemplateOutlet]="rowTemplate()"
+            [ngTemplateOutletContext]="{ $implicit: item }"></ng-template>
         }
       </section>
 
@@ -30,20 +31,17 @@ import { ListItemComponent } from '../list-item/list-item.component';
       </button>
     </div>
   `,
-  imports: [ListItemComponent],
+  imports: [NgTemplateOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CardComponent {
-  readonly list = input<CardDisplay[] | null>(null);
+export class CardComponent<T extends { id: number }> {
   readonly customClass = input('');
+  items = input.required<T[]>();
   addNewItemEvent = output();
-  deleteEvent = output<number>();
+  // We avoid using a magic string by usng a Directive (antipattern)
+  rowTemplate = contentChild.required(CardRowDirective, { read: TemplateRef });
 
   addNewItem() {
     this.addNewItemEvent.emit();
-  }
-
-  delete(id: number) {
-    this.deleteEvent.emit(id);
   }
 }

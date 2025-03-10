@@ -29,3 +29,11 @@ While the application works, the developer experience is far from being optimal.
 
 - Use the signal API to manage your components state (documentation here)
 - To reference the template, use a directive instead of magic strings (What is wrong with magic strings?)
+
+### Info
+
+Arthur a répondu :
+Même s'il peut y avoir une ressemblance entre le ng-content et le ng-template, ils n'ont pas tout à fait le même cas d'utilisation :
+
+- Le ng-content te permet de donner entièrement la main à ton utilisateur sur le contenu à afficher au sein d'un composant
+- Le ng-template permet à ton utilisateur de renseigner une sorte d'interface qui s'intègrera dans ton composant, un peu comme un texte à trou qu'il faudrait compléter
