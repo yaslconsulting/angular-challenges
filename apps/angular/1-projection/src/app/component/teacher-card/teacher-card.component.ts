@@ -20,7 +20,7 @@ import { ListItemComponent } from '../../ui/list-item/list-item.component';
     <app-card
       [items]="teachers()"
       (addNewItemEvent)="addOne()"
-      customClass="bg-light-red">
+      class="bg-light-red">
       <img
         card-header
         ngSrc="assets/img/teacher.png"
@@ -33,6 +33,13 @@ import { ListItemComponent } from '../../ui/list-item/list-item.component';
       </ng-template>
     </app-card>
   `,
+  styles: [
+    `
+      .bg-light-red {
+        background-color: rgba(250, 0, 0, 0.1);
+      }
+    `,
+  ],
   imports: [
     CardComponent,
     NgOptimizedImage,

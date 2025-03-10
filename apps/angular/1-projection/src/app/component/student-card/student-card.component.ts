@@ -20,7 +20,7 @@ import { ListItemComponent } from '../../ui/list-item/list-item.component';
     <app-card
       [items]="students()"
       (addNewItemEvent)="addOne()"
-      customClass="bg-light-green">
+      class="bg-light-green">
       <img
         card-header
         ngSrc="assets/img/student.webp"
@@ -33,6 +33,13 @@ import { ListItemComponent } from '../../ui/list-item/list-item.component';
       </ng-template>
     </app-card>
   `,
+  styles: [
+    `
+      .bg-light-green {
+        background-color: rgba(0, 250, 0, 0.1);
+      }
+    `,
+  ],
   imports: [
     CardComponent,
     NgOptimizedImage,

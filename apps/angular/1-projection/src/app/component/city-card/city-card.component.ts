@@ -20,7 +20,7 @@ import { ListItemComponent } from '../../ui/list-item/list-item.component';
     <app-card
       [items]="cities()"
       (addNewItemEvent)="addOne()"
-      customClass="bg-light-blue">
+      class="bg-light-blue">
       <img card-header ngSrc="assets/img/city.png" width="200" height="200" />
       <ng-template [cardRow]="cities()" let-city>
         <app-list-item (delete)="delete(city.id)">
@@ -29,6 +29,13 @@ import { ListItemComponent } from '../../ui/list-item/list-item.component';
       </ng-template>
     </app-card>
   `,
+  styles: [
+    `
+      .bg-light-blue {
+        background-color: rgba(0, 0, 250, 0.1);
+      }
+    `,
+  ],
   imports: [
     CardComponent,
     NgOptimizedImage,
