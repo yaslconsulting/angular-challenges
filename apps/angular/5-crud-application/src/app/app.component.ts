@@ -13,12 +13,17 @@ import { TodoService } from './services/todo.service';
   imports: [CommonModule],
   selector: 'app-root',
   template: `
-    <div *ngFor="let todo of todos()">
-      {{ todo.title }}
-      <button (click)="update(todo)">Update</button>
-    </div>
+    @for (todo of todos(); track todo.id) {
+      <div class="flex flex-row p-4">
+        <div class="self-center">
+          {{ todo.title }}
+        </div>
+        <button class="ml-4 rounded-md bg-teal-200 p-2" (click)="update(todo)">
+          Update
+        </button>
+      </div>
+    }
   `,
-  styles: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit {
