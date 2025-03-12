@@ -15,4 +15,8 @@ export class TodoStore {
     );
     this.todos.set(updatedTodos);
   }
+
+  delete(id: number): void {
+    this.todos.set(this.todos().filter((todo) => todo.id !== id));
+  }
 }
