@@ -1,16 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { of } from 'rxjs';
 import { AppComponent } from './app.component';
 import { Todo } from './model/todo.model';
 import { TodoService } from './services/todo.service';
-import { TodoStore } from './store/todo.store';
+import * as TodoActions from './store/todos/todos.actions';
+import { selectAllTodos } from './store/todos/todos.selector';
 
 describe('AppComponent', () => {
   let component: AppComponent;
   let todoService: jest.Mocked<TodoService>;
-  let todoStore: jest.Mocked<TodoStore>;
+  let store: MockStore;
 
   beforeEach(() => {
     const todoServiceMock = {
@@ -19,25 +21,23 @@ describe('AppComponent', () => {
       deleteTodo: jest.fn(),
     };
 
-    const todoStoreMock = {
-      todos: jest.fn(),
-      addAll: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-    };
-
     TestBed.configureTestingModule({
       imports: [CommonModule, MatProgressSpinnerModule, AppComponent],
       providers: [
         { provide: TodoService, useValue: todoServiceMock },
-        { provide: TodoStore, useValue: todoStoreMock },
+        provideMockStore({
+          initialState: [],
+          selectors: [
+            { selector: selectAllTodos, value: [{ id: 1, title: 'test' }] },
+          ],
+        }),
       ],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(AppComponent);
     component = fixture.componentInstance;
     todoService = TestBed.inject(TodoService) as jest.Mocked<TodoService>;
-    todoStore = TestBed.inject(TodoStore) as jest.Mocked<TodoStore>;
+    store = TestBed.inject(MockStore);
   });
 
   it('should create component', () => {
@@ -52,17 +52,21 @@ describe('AppComponent', () => {
     component.ngOnInit();
     // THEN
     expect(getAllSpy).toHaveBeenCalledTimes(1);
-    expect(todoService.getTodos).toHaveBeenCalledTimes(1);
   });
 
   it('should update todos on successful getAll', () => {
     // GIVEN
-    const todos: Partial<Todo>[] = [{ id: 1, title: 'Test Todo' }];
-    todoService.getTodos.mockReturnValue(of(todos as Todo[]));
+    const dispatchSpy = jest.spyOn(store, 'dispatch');
+    expect(component.todos().length).toEqual(0);
     // WHEN
-    component.getAll();
+    component.ngOnInit();
+    store.overrideSelector(selectAllTodos, [
+      { id: 1, title: 'test' },
+    ] as Todo[]);
+    store.refreshState();
     // THEN
-    expect(todoStore.addAll).toHaveBeenCalledWith(todos);
+    expect(dispatchSpy).toHaveBeenCalledWith(TodoActions.loadTodos());
+    expect(component.todos().length).toEqual(1);
     expect(component.isLoading()).toBe(false);
   });
 });

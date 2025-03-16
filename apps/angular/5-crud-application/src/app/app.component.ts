@@ -8,10 +8,12 @@ import {
   signal,
 } from '@angular/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { select, Store } from '@ngrx/store';
 import { Subject, takeUntil } from 'rxjs';
 import { Todo } from './model/todo.model';
 import { TodoService } from './services/todo.service';
-import { TodoStore } from './store/todo.store';
+import * as TodoActions from './store/todos/todos.actions';
+import { selectAllTodos } from './store/todos/todos.selector';
 
 @Component({
   imports: [CommonModule, MatProgressSpinnerModule],
@@ -44,65 +46,35 @@ import { TodoStore } from './store/todo.store';
 })
 export class AppComponent implements OnInit, OnDestroy {
   todoService = inject(TodoService);
-  todoStore = inject(TodoStore);
+  store = inject(Store);
   private destroy$ = new Subject<void>();
 
-  todos = this.todoStore.todos;
+  todos = signal<Todo[]>([]);
   isLoading = signal(false);
 
   ngOnInit(): void {
+    this.store
+      .pipe(select(selectAllTodos), takeUntil(this.destroy$))
+      .subscribe((todos) => {
+        this.todos.set(todos);
+        this.isLoading.set(false);
+      });
     this.getAll();
   }
 
   getAll(): void {
     this.isLoading.set(true);
-    this.todoService
-      .getTodos()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (todos) => {
-          this.todoStore.addAll(todos);
-          this.isLoading.set(false);
-        },
-        error: (err) => {
-          this.showError(err);
-          this.isLoading.set(false);
-        },
-      });
+    this.store.dispatch(TodoActions.loadTodos());
   }
 
   update(todo: Todo): void {
     this.isLoading.set(true);
-    this.todoService
-      .updateTodo(todo)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (todoUpdated) => {
-          this.todoStore.update(todoUpdated);
-          this.isLoading.set(false);
-        },
-        error: (err) => {
-          this.showError(err);
-          this.isLoading.set(false);
-        },
-      });
+    this.store.dispatch(TodoActions.updateTodo({ todo }));
   }
 
   delete(id: number): void {
     this.isLoading.set(true);
-    this.todoService
-      .deleteTodo(id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.todoStore.delete(id);
-          this.isLoading.set(false);
-        },
-        error: (err) => {
-          this.showError(err);
-          this.isLoading.set(false);
-        },
-      });
+    this.store.dispatch(TodoActions.deleteTodo({ id }));
   }
 
   showError(text: string): void {
